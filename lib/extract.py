@@ -44,7 +44,7 @@ def parse_spanish_vat(text):
     return None
 
 
-_DATE_RE = re.compile(r"\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b")
+_DATE_RE = re.compile(r"(?<!\d)(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})(?!\d)")
 _REF_RE = re.compile(
     r"FACTURA\s*(?:N[º°o.]{0,2})?\s*[:#]?\s*([A-Za-z0-9][A-Za-z0-9\-/.]{2,})",
     re.IGNORECASE,

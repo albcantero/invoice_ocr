@@ -62,6 +62,11 @@ def test_parse_date_absent_returns_none():
     assert parse_date_es("sin fecha aqui") is None
 
 
+def test_parse_date_glued_to_label():
+    # El OCR suele pegar la etiqueta al valor sin espacio: "Fecha18/08/2026".
+    assert parse_date_es("Fecha18/08/2026") == datetime.date(2026, 8, 18)
+
+
 def test_parse_ref_factura_number():
     assert parse_ref("FACTURA Nº F-2026/45") == "F-2026/45"
 
