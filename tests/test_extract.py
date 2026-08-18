@@ -1,6 +1,7 @@
 import datetime
 
 from lib.extract import (
+    find_amounts,
     parse_amount_es,
     parse_date_es,
     parse_ref,
@@ -66,3 +67,20 @@ def test_parse_ref_factura_number():
 
 def test_parse_ref_absent_returns_none():
     assert parse_ref("documento cualquiera") is None
+
+
+def test_find_amounts_base_iva_total():
+    text = "BASE IMPONIBLE 225,00\nIVA 21% 47,25\nTOTAL 272,25"
+    amounts = find_amounts(text)
+    assert amounts["base"] == 225.00
+    assert amounts["iva"] == 47.25
+    assert amounts["total"] == 272.25
+
+
+def test_find_amounts_ignores_percentage_on_iva_line():
+    assert find_amounts("IVA 21% 47,25")["iva"] == 47.25
+
+
+def test_find_amounts_missing_returns_none():
+    amounts = find_amounts("Gracias por su compra")
+    assert amounts == {"base": None, "iva": None, "total": None}

@@ -79,3 +79,26 @@ def parse_ref(text):
     if match:
         return match.group(1).strip(" .")
     return None
+
+
+# Importe español con 2 decimales obligatorios: evita capturar "21%" como cifra.
+_MONEY_RE = re.compile(r"\d{1,3}(?:\.\d{3})+,\d{2}|\d+,\d{2}")
+
+
+def find_amounts(text):
+    """Localiza base/IVA/total por líneas con sus anclas. El importe es el
+    último token monetario de la línea (con 2 decimales), ignorando '%'."""
+    result = {"base": None, "iva": None, "total": None}
+    for line in (text or "").splitlines():
+        upper = line.upper()
+        monies = _MONEY_RE.findall(line)
+        if not monies:
+            continue
+        amount = parse_amount_es(monies[-1])
+        if "TOTAL" in upper and result["total"] is None:
+            result["total"] = amount
+        elif "BASE" in upper and result["base"] is None:
+            result["base"] = amount
+        elif ("IVA" in upper or "I.V.A" in upper) and result["iva"] is None:
+            result["iva"] = amount
+    return result
