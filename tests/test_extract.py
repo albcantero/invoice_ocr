@@ -1,4 +1,11 @@
-from lib.extract import parse_amount_es, parse_spanish_vat
+import datetime
+
+from lib.extract import (
+    parse_amount_es,
+    parse_date_es,
+    parse_ref,
+    parse_spanish_vat,
+)
 
 
 def test_parse_amount_es_thousands_and_decimals():
@@ -39,3 +46,23 @@ def test_parse_vat_nie():
 
 def test_parse_vat_absent_returns_none():
     assert parse_spanish_vat("sin identificador fiscal") is None
+
+
+def test_parse_date_slash_four_digit_year():
+    assert parse_date_es("Fecha: 18/08/2026") == datetime.date(2026, 8, 18)
+
+
+def test_parse_date_dash_two_digit_year():
+    assert parse_date_es("01-02-26") == datetime.date(2026, 2, 1)
+
+
+def test_parse_date_absent_returns_none():
+    assert parse_date_es("sin fecha aqui") is None
+
+
+def test_parse_ref_factura_number():
+    assert parse_ref("FACTURA Nº F-2026/45") == "F-2026/45"
+
+
+def test_parse_ref_absent_returns_none():
+    assert parse_ref("documento cualquiera") is None
