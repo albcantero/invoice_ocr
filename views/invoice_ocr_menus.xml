@@ -1,0 +1,10 @@
+<odoo>
+    <menuitem id="menu_invoice_ocr_root" name="Escáner de facturas"
+              parent="account.menu_finance" sequence="90"/>
+    <menuitem id="menu_invoice_ocr_upload" name="Subir facturas"
+              parent="menu_invoice_ocr_root" action="invoice_ocr_upload_action"
+              sequence="10"/>
+    <menuitem id="menu_invoice_ocr_documents" name="Documentos"
+              parent="menu_invoice_ocr_root" action="invoice_ocr_document_action"
+              sequence="20"/>
+</odoo>

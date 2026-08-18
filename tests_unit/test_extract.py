@@ -1,6 +1,6 @@
 import datetime
 
-from lib.extract import (
+from extract import (
     extract_invoice_fields,
     find_amounts,
     parse_amount_es,

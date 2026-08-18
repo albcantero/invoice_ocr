@@ -1,0 +1,66 @@
+<odoo>
+    <record id="invoice_ocr_document_view_list" model="ir.ui.view">
+        <field name="name">invoice.ocr.document.list</field>
+        <field name="model">invoice.ocr.document</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'done'" decoration-danger="state == 'error'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="invoice_date"/>
+                <field name="ref"/>
+                <field name="amount_total"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'error'"
+                       decoration-info="state == 'to_review'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="invoice_ocr_document_view_form" model="ir.ui.view">
+        <field name="name">invoice.ocr.document.form</field>
+        <field name="model">invoice.ocr.document</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_process" type="object" string="Reprocesar"
+                            class="btn-secondary"
+                            invisible="state not in ('new', 'processing', 'to_review', 'error')"/>
+                    <button name="action_create_bill" type="object" string="Crear factura"
+                            class="btn-primary" invisible="state != 'to_review'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="new,processing,to_review,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="partner_vat"/>
+                            <field name="invoice_date"/>
+                            <field name="ref"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount_untaxed"/>
+                            <field name="amount_tax"/>
+                            <field name="amount_total"/>
+                            <field name="move_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="error_message" readonly="1" invisible="state != 'error'"/>
+                    <notebook>
+                        <page string="Texto OCR">
+                            <field name="raw_text" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="invoice_ocr_document_action" model="ir.actions.act_window">
+        <field name="name">Documentos escaneados</field>
+        <field name="res_model">invoice.ocr.document</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
