@@ -41,6 +41,24 @@ class InvoiceOcrDocument(models.Model):
     raw_text = fields.Text(string="OCR text")
     move_id = fields.Many2one("account.move", string="Vendor bill", readonly=True)
     error_message = fields.Text(string="Error")
+    line_ids = fields.One2many(
+        "invoice.ocr.document.line", "document_id", string="Lines"
+    )
+    due_date = fields.Date(string="Due date")
+    partner_name = fields.Char(string="Vendor name (raw)")
+    llm_state = fields.Selection(
+        [
+            ("none", "None"),
+            ("pending", "Pending"),
+            ("processing", "Processing"),
+            ("done", "Done"),
+            ("error", "Error"),
+        ],
+        default="none",
+        required=True,
+        index=True,
+    )
+    llm_error = fields.Text(string="LLM error")
 
     # --- OCR + extracción ---
 
