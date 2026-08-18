@@ -1,6 +1,7 @@
 import datetime
 
 from lib.extract import (
+    extract_invoice_fields,
     find_amounts,
     parse_amount_es,
     parse_date_es,
@@ -84,3 +85,29 @@ def test_find_amounts_ignores_percentage_on_iva_line():
 def test_find_amounts_missing_returns_none():
     amounts = find_amounts("Gracias por su compra")
     assert amounts == {"base": None, "iva": None, "total": None}
+
+
+def test_extract_invoice_fields_full_document():
+    text = (
+        "FACTURA Nº F-2026/45\n"
+        "Fecha 18/08/2026\n"
+        "CIF B12345674\n"
+        "BASE IMPONIBLE 225,00\n"
+        "IVA 21% 47,25\n"
+        "TOTAL 272,25\n"
+    )
+    result = extract_invoice_fields(text)
+    assert result.partner_vat == "B12345674"
+    assert result.invoice_date == datetime.date(2026, 8, 18)
+    assert result.ref == "F-2026/45"
+    assert result.amount_untaxed == 225.00
+    assert result.amount_tax == 47.25
+    assert result.amount_total == 272.25
+    assert result.amounts_consistent is True
+
+
+def test_extract_invoice_fields_empty_text():
+    result = extract_invoice_fields("")
+    assert result.partner_vat is None
+    assert result.amount_total is None
+    assert result.amounts_consistent is False

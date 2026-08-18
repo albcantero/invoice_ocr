@@ -4,6 +4,7 @@ Python puro, sin dependencias de Odoo. Se testea con pytest en local.
 """
 import datetime
 import re
+from dataclasses import dataclass
 
 
 def parse_amount_es(token):
@@ -102,3 +103,36 @@ def find_amounts(text):
         elif ("IVA" in upper or "I.V.A" in upper) and result["iva"] is None:
             result["iva"] = amount
     return result
+
+
+@dataclass
+class ExtractedInvoice:
+    partner_vat: "str | None" = None
+    invoice_date: "datetime.date | None" = None
+    ref: "str | None" = None
+    amount_untaxed: "float | None" = None
+    amount_tax: "float | None" = None
+    amount_total: "float | None" = None
+    amounts_consistent: bool = False
+
+
+def extract_invoice_fields(text):
+    """Orquesta la extracción de la cabecera de una factura española."""
+    text = text or ""
+    amounts = find_amounts(text)
+    base, iva, total = amounts["base"], amounts["iva"], amounts["total"]
+    consistent = (
+        base is not None
+        and iva is not None
+        and total is not None
+        and abs((base + iva) - total) <= 0.02
+    )
+    return ExtractedInvoice(
+        partner_vat=parse_spanish_vat(text),
+        invoice_date=parse_date_es(text),
+        ref=parse_ref(text),
+        amount_untaxed=base,
+        amount_tax=iva,
+        amount_total=total,
+        amounts_consistent=consistent,
+    )
