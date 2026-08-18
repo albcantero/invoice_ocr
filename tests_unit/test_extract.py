@@ -116,3 +116,57 @@ def test_extract_invoice_fields_empty_text():
     assert result.partner_vat is None
     assert result.amount_total is None
     assert result.amounts_consistent is False
+
+
+def test_find_amounts_label_and_value_on_separate_lines():
+    # Layout en columna: la etiqueta y el valor en líneas distintas.
+    text = "Importe base\n225,00\nIVA 21%\n47,25\nTotal\n272,25"
+    amounts = find_amounts(text)
+    assert amounts["base"] == 225.00
+    assert amounts["iva"] == 47.25
+    assert amounts["total"] == 272.25
+
+
+def test_parse_ref_prefers_invoice_code_near_factura():
+    text = "Factura proforma INV/2026/00048\nOrigen\nPROY/2026/00008"
+    assert parse_ref(text) == "INV/2026/00048"
+
+
+# Texto OCR real de una proforma de Hermaflor (regresión del caso que falló).
+_REAL_INVOICE_OCR = """HERMAFLORJARDINESYPLANTAS,S.L.
+Factura proforma INV/2026/00048
+NIF:07956918E
+Fecha de factura
+Fecha de vencimiento
+Origen
+13/07/2026
+14/07/2026
+PROY/2026/00008
+Siega (Manual)
+1,00 Horas
+25,00
+21% S
+25,00
+Taquear
+8,00 Horas
+25,00
+21% S
+200,00
+Importe base
+225,00
+IVA 21%
+47,25
+Total
+272,25
+"""
+
+
+def test_extract_real_invoice_ocr_text():
+    result = extract_invoice_fields(_REAL_INVOICE_OCR)
+    assert result.partner_vat == "07956918E"
+    assert result.invoice_date == datetime.date(2026, 7, 13)
+    assert result.ref == "INV/2026/00048"
+    assert result.amount_untaxed == 225.00
+    assert result.amount_tax == 47.25
+    assert result.amount_total == 272.25
+    assert result.amounts_consistent is True

@@ -45,8 +45,9 @@ def parse_spanish_vat(text):
 
 
 _DATE_RE = re.compile(r"(?<!\d)(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})(?!\d)")
-_REF_RE = re.compile(
-    r"FACTURA\s*(?:N[º°o.]{0,2})?\s*[:#]?\s*([A-Za-z0-9][A-Za-z0-9\-/.]{2,})",
+_REF_CODE_RE = re.compile(r"\b([A-Za-z]{1,5}[/-]\d{2,4}[/-]\d{2,6})\b")
+_REF_FALLBACK_RE = re.compile(
+    r"FACTURA\s*(?:N[º°o.]{0,2}|[:#])?\s*([A-Za-z0-9\-/.]*\d[A-Za-z0-9\-/.]*)",
     re.IGNORECASE,
 )
 
@@ -73,10 +74,17 @@ def parse_date_es(text):
 
 
 def parse_ref(text):
-    """Devuelve el número de factura tras el ancla 'FACTURA'."""
+    """Número de factura. Prioriza un código tipo INV/2026/00048 o F-2026/45
+    cercano a la palabra 'factura'; si no, un token con dígito tras 'FACTURA'."""
     if not text:
         return None
-    match = _REF_RE.search(text)
+    matches = list(_REF_CODE_RE.finditer(text))
+    if matches:
+        anchor = text.lower().find("factura")
+        if anchor != -1:
+            matches.sort(key=lambda m: abs(m.start() - anchor))
+        return matches[0].group(1)
+    match = _REF_FALLBACK_RE.search(text)
     if match:
         return match.group(1).strip(" .")
     return None
@@ -87,21 +95,26 @@ _MONEY_RE = re.compile(r"\d{1,3}(?:\.\d{3})+,\d{2}|\d+,\d{2}")
 
 
 def find_amounts(text):
-    """Localiza base/IVA/total por líneas con sus anclas. El importe es el
-    último token monetario de la línea (con 2 decimales), ignorando '%'."""
+    """Localiza base/IVA/total por sus anclas. El importe puede estar en la
+    misma línea del ancla o en una de las siguientes (layouts en columna)."""
     result = {"base": None, "iva": None, "total": None}
-    for line in (text or "").splitlines():
+    lines = (text or "").splitlines()
+
+    def money_near(index):
+        for offset, line in enumerate(lines[index : index + 3]):
+            monies = _MONEY_RE.findall(line)
+            if monies:
+                return parse_amount_es(monies[-1] if offset == 0 else monies[0])
+        return None
+
+    for index, line in enumerate(lines):
         upper = line.upper()
-        monies = _MONEY_RE.findall(line)
-        if not monies:
-            continue
-        amount = parse_amount_es(monies[-1])
-        if "TOTAL" in upper and result["total"] is None:
-            result["total"] = amount
-        elif "BASE" in upper and result["base"] is None:
-            result["base"] = amount
-        elif ("IVA" in upper or "I.V.A" in upper) and result["iva"] is None:
-            result["iva"] = amount
+        if result["total"] is None and "TOTAL" in upper:
+            result["total"] = money_near(index)
+        elif result["base"] is None and "BASE" in upper:
+            result["base"] = money_near(index)
+        elif result["iva"] is None and ("IVA" in upper or "I.V.A" in upper):
+            result["iva"] = money_near(index)
     return result
 
 
