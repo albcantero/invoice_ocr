@@ -112,7 +112,7 @@ La capa 2 devuelve un dict con los campos + señales de confianza; nunca lanza p
 
 Botón "Crear factura" en el registro `to_review`:
 - Crea `account.move` con `move_type = 'in_invoice'`, `partner_id`, `invoice_date`, `ref`.
-- **Una línea**: `price_unit = amount_untaxed` (base) e intenta adjuntar el `account.tax` de compra cuyo porcentaje case con `amount_tax/amount_untaxed` (p. ej. 21%). Si no se puede mapear con confianza, cae a `price_unit = amount_total` sin impuesto.
+- **Una línea**: `price_unit = amount_untaxed` (base) e intenta adjuntar el `account.tax` de compra cuyo porcentaje case con `amount_tax/amount_untaxed`. **Por defecto 21%** (IVA general). Si no se puede mapear con confianza, cae a `price_unit = amount_total` sin impuesto.
 - Cuenta contable: se deja la de por defecto (diario/proveedor); el usuario ajusta en el borrador.
 - El `move` se crea **en borrador** (nunca se contabiliza solo). Se pasa `state = done`, se enlaza `move_id` y se abre la factura.
 
@@ -124,7 +124,7 @@ Vistas Odoo estándar, sin OWL todavía:
 - **Acción de subida**: asistente/acción que acepta múltiples ficheros; crea un `invoice.ocr.document` por archivo y dispara el procesado.
 - **Vista lista**: con `decoration-*` por `state` (badges Nuevos/A revisar/Errores), columnas proveedor, fecha, nº, total, estado.
 - **Vista formulario**: previsualización del adjunto + campos extraídos editables + botón "Crear factura". Aquí se revisa y corrige antes de crear.
-- **Menú**: entrada propia (Contabilidad/Compras → "Escáner de facturas").
+- **Menú**: `menuitem` nuevo dentro de **Contabilidad** (`account`), "Escáner de facturas".
 
 La pantalla "Escáner" estilo Holded/Modernist (contadores, DataGrid, zona de arrastre) se monta **después** del MVP, reusando patrones de `hmf_dashboard` y del buscador de lista.
 
@@ -163,5 +163,5 @@ La pantalla "Escáner" estilo Holded/Modernist (contadores, DataGrid, zona de ar
 
 - Se asume que los proveedores frecuentes tienen NIF en `res.partner`; si no casa por VAT, el proveedor queda vacío para elegir en la revisión.
 - Se asume factura española (formato de número e IVA). Multi-idioma/otros formatos, fuera de MVP.
-- Confirmar el nombre del menú y dónde cuelga (Contabilidad vs Compras).
-- Confirmar el modelo de recepción de IVA por defecto para el mapeo de impuesto de la línea.
+- **Resuelto**: el menú es un `menuitem` nuevo dentro de Contabilidad (`account`).
+- **Resuelto**: impuesto de compra por defecto para el mapeo de la línea = 21% (IVA general).
