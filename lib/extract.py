@@ -24,3 +24,19 @@ def parse_amount_es(token):
         return round(float(s), 2)
     except ValueError:
         return None
+
+
+_NIF_RE = re.compile(r"\b\d{8}[A-Za-z]\b")
+_CIF_RE = re.compile(r"\b[ABCDEFGHJNPQRSUVWabcdefghjnpqrsuvw]\d{7}[0-9A-Ja-j]\b")
+_NIE_RE = re.compile(r"\b[XYZxyz]\d{7}[A-Za-z]\b")
+
+
+def parse_spanish_vat(text):
+    """Devuelve el primer CIF/NIF/NIE plausible en el texto, en mayúsculas."""
+    if not text:
+        return None
+    for pattern in (_NIE_RE, _CIF_RE, _NIF_RE):
+        match = pattern.search(text)
+        if match:
+            return match.group(0).upper()
+    return None
