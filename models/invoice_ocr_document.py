@@ -179,13 +179,39 @@ class InvoiceOcrDocument(models.Model):
 
     def _prepare_bill_vals(self):
         self.ensure_one()
+        if self.line_ids:
+            line_cmds = [
+                (0, 0, self._prepare_bill_line_vals_from_line(line))
+                for line in self.line_ids
+            ]
+        else:
+            line_cmds = [(0, 0, self._prepare_bill_line_vals())]
         return {
             "move_type": "in_invoice",
             "partner_id": self.partner_id.id,
             "invoice_date": self.invoice_date,
+            "invoice_date_due": self.due_date,
             "ref": self.ref,
-            "invoice_line_ids": [(0, 0, self._prepare_bill_line_vals())],
+            "invoice_line_ids": line_cmds,
         }
+
+    def _prepare_bill_line_vals_from_line(self, line):
+        self.ensure_one()
+        vals = {
+            "name": line.description or _("Line"),
+            "quantity": line.quantity or 1.0,
+            "price_unit": line.price_unit or 0.0,
+        }
+        if line.product_id:
+            vals["product_id"] = line.product_id.id
+        tax = self.env["account.tax"].search([
+            ("type_tax_use", "=", "purchase"),
+            ("amount", "=", line.tax_percent or 21.0),
+            ("company_id", "=", self.env.company.id),
+        ], limit=1)
+        if tax:
+            vals["tax_ids"] = [(6, 0, tax.ids)]
+        return vals
 
     def action_create_bill(self):
         self.ensure_one()

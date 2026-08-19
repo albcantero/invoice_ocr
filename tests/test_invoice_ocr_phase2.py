@@ -36,3 +36,19 @@ class TestInvoiceOcrPhase2(TransactionCase):
         self.assertEqual(doc.due_date, datetime.date(2026, 7, 14))
         self.assertEqual(doc.partner_id, self.partner)   # casa por VAT de la heuristica
         self.assertEqual(doc.amount_total, 272.25)        # heuristica del raw_text
+
+    def test_create_bill_uses_lines_when_present(self):
+        doc = self._doc("CIF B12345674\nBASE IMPONIBLE 225,00\nIVA 21% 47,25\nTOTAL 272,25\n")
+        doc._apply_llm_result(LlmInvoice(
+            vendor_name="Proveedor Test", vendor_vat=None,
+            lines=[LlmLine("Siega", 1.0, 25.0, 21.0, 25.0),
+                   LlmLine("Taquear", 8.0, 25.0, 21.0, 200.0)],
+        ))
+        doc.action_create_bill()
+        self.assertEqual(doc.move_id.move_type, "in_invoice")
+        self.assertEqual(len(doc.move_id.invoice_line_ids), 2)
+        names = doc.move_id.invoice_line_ids.mapped("name")
+        self.assertIn("Siega", names)
+        self.assertIn("Taquear", names)
+        # sin crear productos
+        self.assertFalse(any(doc.move_id.invoice_line_ids.mapped("product_id")))
