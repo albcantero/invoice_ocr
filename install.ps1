@@ -2,3 +2,5 @@
 # Uso: .\install.ps1 -Python C:\ruta\a\python.exe
 param([string]$Python = "python")
 & $Python -m pip install -r (Join-Path $PSScriptRoot "requirements.txt")
+
+Write-Host "LLM (opcional, backend embebido): $Python -m pip install -r $(Join-Path $PSScriptRoot 'requirements-llm.txt') ; y descarga los .gguf al models dir."

@@ -4,3 +4,5 @@
 set -e
 PYTHON="${1:-python3}"
 "$PYTHON" -m pip install -r "$(dirname "$0")/requirements.txt"
+
+echo "LLM (opcional, backend embebido): $PYTHON -m pip install -r $(dirname "$0")/requirements-llm.txt ; y descarga los .gguf al models dir."
