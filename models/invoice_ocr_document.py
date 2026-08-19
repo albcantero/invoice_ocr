@@ -79,12 +79,37 @@ class InvoiceOcrDocument(models.Model):
             ollama_url=params.get_param("invoice_ocr.llm_ollama_url", "http://127.0.0.1:11434"),
         )
 
+    def _cron_llm_enrichment(self, limit=20):
+        from ..lib.llm import schema as schema_lib
+        docs = self.search([("llm_state", "=", "pending")], limit=limit)
+        if not docs:
+            return
+        backend = docs[:1]._get_llm_backend()
+        try:
+            for document in docs:
+                try:
+                    document.llm_state = "processing"
+                    raw = backend.extract_invoice_json(document.raw_text or "")
+                    document._apply_llm_result(schema_lib.normalize(raw))
+                    document.llm_state = "done"
+                except Exception as error:  # noqa: BLE001
+                    document.llm_state = "error"
+                    document.llm_error = str(error)
+                self.env.cr.commit()
+        finally:
+            backend.close()
+
     def action_process(self):
+        llm_enabled = self.env["ir.config_parameter"].sudo().get_param(
+            "invoice_ocr.llm_enabled"
+        )
         for document in self:
             try:
                 document.state = "processing"
                 text = document._ocr_text()
                 document._apply_extraction(text)
+                if llm_enabled:
+                    document.llm_state = "pending"
             except Exception as error:  # noqa: BLE001 - se refleja en el registro
                 document.state = "error"
                 document.error_message = str(error)

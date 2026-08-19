@@ -1,0 +1,11 @@
+<odoo>
+    <record id="ir_cron_invoice_ocr_llm" model="ir.cron">
+        <field name="name">Invoice OCR: enriquecimiento LLM</field>
+        <field name="model_id" ref="model_invoice_ocr_document"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_llm_enrichment()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

@@ -10,6 +10,7 @@
     'external_dependencies': {'python': ['rapidocr_onnxruntime', 'fitz']},
     'data': [
         'security/ir.model.access.csv',
+        'data/ir_cron.xml',
         'views/invoice_ocr_document_views.xml',
         'wizards/invoice_ocr_upload_views.xml',
         'views/invoice_ocr_menus.xml',
