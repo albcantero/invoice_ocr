@@ -33,7 +33,7 @@ class EmbeddedBackend:
         model = self._ensure_model()
         out = model.create_chat_completion(
             messages=build_messages(text), temperature=0,
-            response_format={"type": "json_object"}, max_tokens=800,
+            response_format={"type": "json_object"}, max_tokens=2048,
         )
         content = out["choices"][0]["message"]["content"] or "{}"
         return json.loads(content)

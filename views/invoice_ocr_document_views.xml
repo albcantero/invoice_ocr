@@ -55,7 +55,7 @@
                     </group>
                     <field name="error_message" readonly="1" invisible="state != 'error'"/>
                     <notebook>
-                        <page string="Lineas">
+                        <page string="Líneas">
                             <field name="line_ids">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>

@@ -80,6 +80,8 @@ class InvoiceOcrDocument(models.Model):
         )
 
     def _cron_llm_enrichment(self, limit=20):
+        if not self.env["ir.config_parameter"].sudo().get_param("invoice_ocr.llm_enabled"):
+            return
         from ..lib.llm import schema as schema_lib
         docs = self.search([("llm_state", "=", "pending")], limit=limit)
         if not docs:
@@ -212,9 +214,16 @@ class InvoiceOcrDocument(models.Model):
             vals["price_unit"] = self.amount_total or vals["price_unit"]
         return vals
 
+    def _lines_match_total(self):
+        self.ensure_one()
+        if not self.amount_untaxed:
+            return True  # sin base heuristica con que contrastar: se confia en las lineas
+        lines_sum = sum(line.amount for line in self.line_ids)
+        return abs(lines_sum - self.amount_untaxed) <= 0.05
+
     def _prepare_bill_vals(self):
         self.ensure_one()
-        if self.line_ids:
+        if self.line_ids and self._lines_match_total():
             line_cmds = [
                 (0, 0, self._prepare_bill_line_vals_from_line(line))
                 for line in self.line_ids

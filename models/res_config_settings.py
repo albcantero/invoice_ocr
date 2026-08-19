@@ -14,7 +14,7 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="invoice_ocr.llm_backend",
     )
     invoice_ocr_llm_model = fields.Selection(
-        [("fast", "Rapido (1.5B)"), ("quality", "Mejor (3B)")],
+        [("fast", "Rápido (1.5B)"), ("quality", "Mejor (3B)")],
         string="LLM model", default="fast",
         config_parameter="invoice_ocr.llm_model",
     )
@@ -26,3 +26,10 @@ class ResConfigSettings(models.TransientModel):
         string="Ollama URL", default="http://127.0.0.1:11434",
         config_parameter="invoice_ocr.llm_ollama_url",
     )
+
+    def set_values(self):
+        res = super().set_values()
+        cron = self.env.ref("invoice_ocr.ir_cron_invoice_ocr_llm", raise_if_not_found=False)
+        if cron:
+            cron.active = bool(self.invoice_ocr_llm_enabled)
+        return res

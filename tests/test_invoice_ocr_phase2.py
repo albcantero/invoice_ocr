@@ -52,3 +52,13 @@ class TestInvoiceOcrPhase2(TransactionCase):
         self.assertIn("Taquear", names)
         # sin crear productos
         self.assertFalse(any(doc.move_id.invoice_line_ids.mapped("product_id")))
+
+    def test_create_bill_falls_back_to_single_line_when_lines_dont_match_total(self):
+        doc = self._doc("CIF B12345674\nBASE IMPONIBLE 225,00\nIVA 21% 47,25\nTOTAL 272,25\n")
+        doc._apply_llm_result(LlmInvoice(
+            vendor_name="Proveedor Test", vendor_vat=None,
+            lines=[LlmLine("Descuadre", 1.0, 999.0, 21.0, 999.0)],
+        ))
+        doc.action_create_bill()
+        self.assertEqual(doc.move_id.move_type, "in_invoice")
+        self.assertEqual(len(doc.move_id.invoice_line_ids), 1)

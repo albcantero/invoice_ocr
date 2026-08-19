@@ -15,7 +15,7 @@ class OllamaBackend:
         payload = {
             "model": self.model_id, "stream": False, "format": "json",
             "keep_alive": "30s",
-            "options": {"temperature": 0, "num_predict": 800},
+            "options": {"temperature": 0, "num_predict": 2048},
             "messages": build_messages(text),
         }
         data = json.dumps(payload).encode("utf-8")

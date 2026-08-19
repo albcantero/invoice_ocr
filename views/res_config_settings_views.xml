@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <xpath expr="//block[last()]" position="after">
                 <block title="Invoice OCR (LLM)" id="invoice_ocr_llm_block">
-                    <setting string="Enrichment con LLM local" help="Extrae lineas de detalle con un modelo local, en segundo plano.">
+                    <setting string="Enriquecimiento con LLM local" help="Extrae líneas de detalle con un modelo local, en segundo plano.">
                         <field name="invoice_ocr_llm_enabled"/>
                         <div invisible="not invoice_ocr_llm_enabled">
                             <field name="invoice_ocr_llm_backend"/>
