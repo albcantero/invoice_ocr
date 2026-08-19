@@ -69,6 +69,16 @@ class InvoiceOcrDocument(models.Model):
 
         return ocr_lib.file_to_text(self.attachment_id.raw, self.attachment_id.mimetype)
 
+    def _get_llm_backend(self):
+        from ..lib.llm import factory as llm_factory
+        params = self.env["ir.config_parameter"].sudo()
+        return llm_factory.get_backend(
+            backend=params.get_param("invoice_ocr.llm_backend", "embedded"),
+            model=params.get_param("invoice_ocr.llm_model", "fast"),
+            models_dir=params.get_param("invoice_ocr.llm_models_dir", ""),
+            ollama_url=params.get_param("invoice_ocr.llm_ollama_url", "http://127.0.0.1:11434"),
+        )
+
     def action_process(self):
         for document in self:
             try:

@@ -1,0 +1,24 @@
+<odoo>
+    <record id="res_config_settings_view_form_invoice_ocr" model="ir.ui.view">
+        <field name="name">res.config.settings.invoice.ocr</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[last()]" position="after">
+                <block title="Invoice OCR (LLM)" id="invoice_ocr_llm_block">
+                    <setting string="Enrichment con LLM local" help="Extrae lineas de detalle con un modelo local, en segundo plano.">
+                        <field name="invoice_ocr_llm_enabled"/>
+                        <div invisible="not invoice_ocr_llm_enabled">
+                            <field name="invoice_ocr_llm_backend"/>
+                            <field name="invoice_ocr_llm_model"/>
+                            <field name="invoice_ocr_llm_models_dir"
+                                   invisible="invoice_ocr_llm_backend != 'embedded'"/>
+                            <field name="invoice_ocr_llm_ollama_url"
+                                   invisible="invoice_ocr_llm_backend != 'ollama'"/>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
