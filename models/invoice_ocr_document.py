@@ -2,6 +2,7 @@ from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 from ..lib import extract as extract_lib
+from ..lib.llm import reconcile as reconcile_lib
 
 
 class InvoiceOcrDocument(models.Model):
@@ -111,6 +112,43 @@ class InvoiceOcrDocument(models.Model):
             partner = self._match_partner(result.partner_vat)
             if partner:
                 vals["partner_id"] = partner.id
+        self.write(vals)
+
+    def _apply_llm_result(self, llm_invoice):
+        self.ensure_one()
+        heur = extract_lib.extract_invoice_fields(self.raw_text or "")
+        merged = reconcile_lib.reconcile(heur, llm_invoice)
+        self.line_ids.unlink()
+        vals = {
+            "due_date": merged.due_date,
+            "partner_name": merged.vendor_name,
+            "partner_vat": merged.partner_vat,
+            "invoice_date": merged.invoice_date,
+            "ref": merged.ref,
+            "amount_untaxed": merged.amount_untaxed or 0.0,
+            "amount_tax": merged.amount_tax or 0.0,
+            "amount_total": merged.amount_total or 0.0,
+            "line_ids": [
+                (0, 0, {
+                    "sequence": (index + 1) * 10,
+                    "description": line.description,
+                    "quantity": line.quantity or 0.0,
+                    "price_unit": line.price_unit or 0.0,
+                    "tax_percent": line.tax_percent or 0.0,
+                    "amount": line.amount or 0.0,
+                })
+                for index, line in enumerate(merged.lines)
+            ],
+        }
+        partner = self.env["res.partner"]
+        if merged.partner_vat:
+            partner = self._match_partner(merged.partner_vat)
+        if not partner and merged.vendor_name:
+            partner = self.env["res.partner"].search(
+                [("name", "=", merged.vendor_name)], limit=1
+            )
+        if partner:
+            vals["partner_id"] = partner.id
         self.write(vals)
 
     # --- Creación de la factura ---
