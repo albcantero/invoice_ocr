@@ -45,10 +45,32 @@
                             <field name="amount_tax"/>
                             <field name="amount_total"/>
                             <field name="move_id" readonly="1"/>
+                            <field name="due_date"/>
+                            <field name="partner_name"/>
+                            <field name="llm_state" widget="badge"
+                                   decoration-info="llm_state == 'processing'"
+                                   decoration-success="llm_state == 'done'"
+                                   decoration-danger="llm_state == 'error'"/>
                         </group>
                     </group>
                     <field name="error_message" readonly="1" invisible="state != 'error'"/>
                     <notebook>
+                        <page string="Lineas">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="tax_percent"/>
+                                    <field name="amount"/>
+                                    <field name="product_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="LLM" invisible="llm_state == 'none'">
+                            <field name="llm_error" readonly="1"/>
+                        </page>
                         <page string="Texto OCR">
                             <field name="raw_text" readonly="1"/>
                         </page>
