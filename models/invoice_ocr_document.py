@@ -102,16 +102,17 @@ class InvoiceOcrDocument(models.Model):
             backend.close()
 
     def action_process(self):
-        llm_enabled = self.env["ir.config_parameter"].sudo().get_param(
-            "invoice_ocr.llm_enabled"
-        )
+        # Capa LLM (fase beta) PARKEADA: no se marca 'pending'. Alpha = solo heuristica.
+        # llm_enabled = self.env["ir.config_parameter"].sudo().get_param(
+        #     "invoice_ocr.llm_enabled"
+        # )
         for document in self:
             try:
                 document.state = "processing"
                 text = document._ocr_text()
                 document._apply_extraction(text)
-                if llm_enabled:
-                    document.llm_state = "pending"
+                # if llm_enabled:
+                #     document.llm_state = "pending"
             except Exception as error:  # noqa: BLE001 - se refleja en el registro
                 document.state = "error"
                 document.error_message = str(error)

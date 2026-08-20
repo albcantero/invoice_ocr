@@ -2,6 +2,8 @@
 
 Escáner de facturas de proveedor para **Odoo 19** con **OCR local, sin API externa**. Réplica funcional del escáner de Holded, con revisión humana antes de contabilizar.
 
+> **Estado: fase ALPHA (solo heurística).** La capa de enriquecimiento por **LLM local (fase beta)** está implementada pero **parkeada** (código intacto en `lib/llm/` y en los métodos `_apply_llm_result` / `_cron_llm_enrichment` / `_get_llm_backend`; solo está **desconectada**). Para **reactivarla**: descomentar en `__manifest__.py` las líneas `data/ir_cron.xml` y `views/res_config_settings_views.xml`; en `models/__init__.py` el `from . import res_config_settings`; en `action_process` el bloque `llm_enabled`; y en `views/invoice_ocr_document_views.xml` las secciones LLM. Detalles del LLM en `docs/DEPLOYMENT.md` (§3-§5).
+
 - **Fase 1**: subes una factura (PDF/imagen); la heurística extrae la cabecera (proveedor por CIF/NIF, fecha, nº, base, IVA, total) al instante y prepara un borrador de `account.move`.
 - **Fase 2**: un **LLM local** en segundo plano extrae además las **líneas de detalle** (descripción, cantidad, precio, IVA por línea) y el vencimiento. Reconciliación: la heurística manda en lo determinista (CIF, importes, fechas); el LLM aporta líneas, proveedor y vencimiento, y rellena huecos.
 

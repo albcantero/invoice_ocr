@@ -10,11 +10,12 @@
     'external_dependencies': {'python': ['rapidocr_onnxruntime', 'fitz']},
     'data': [
         'security/ir.model.access.csv',
-        'data/ir_cron.xml',
+        # Capa LLM (fase beta) PARKEADA — reponer estas 2 lineas para reactivar:
+        # 'data/ir_cron.xml',
         'views/invoice_ocr_document_views.xml',
         'wizards/invoice_ocr_upload_views.xml',
         'views/invoice_ocr_menus.xml',
-        'views/res_config_settings_views.xml',
+        # 'views/res_config_settings_views.xml',
     ],
     'application': True,
     'installable': True,
