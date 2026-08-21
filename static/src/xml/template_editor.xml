@@ -12,12 +12,12 @@
                 <button class="btn btn-primary" t-on-click="() => this.save()">Guardar</button>
                 <span class="text-muted">Elige el campo y arrastra un rectángulo sobre su valor.</span>
             </div>
+            <div t-if="state.loading" class="text-muted mb-2">Cargando PDF…</div>
             <div class="position-relative d-inline-block"
                  style="user-select:none; cursor:crosshair;"
                  t-on-mousedown="onMouseDown" t-on-mousemove="onMouseMove" t-on-mouseup="onMouseUp">
-                <img t-ref="img" t-att-src="'data:image/png;base64,' + state.png"
-                     style="max-width:100%; display:block; border:1px solid #ccc;"
-                     draggable="false"/>
+                <canvas t-ref="canvas"
+                        style="max-width:100%; display:block; border:1px solid #ccc;"/>
                 <t t-foreach="state.zones" t-as="z" t-key="z_index">
                     <div class="position-absolute" t-att-style="zoneStyle(z)">
                         <span class="badge text-bg-primary"

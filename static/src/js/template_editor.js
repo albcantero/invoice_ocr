@@ -1,37 +1,62 @@
 /** @odoo-module **/
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { Component, useState, useRef, onWillStart } from "@odoo/owl";
+import { loadJS } from "@web/core/assets";
+import { Component, useState, useRef, onWillStart, onMounted } from "@odoo/owl";
+
+const PDFJS_LIB = "/web/static/lib/pdfjs/build/pdf.js";
+const PDFJS_WORKER = "/web/static/lib/pdfjs/build/pdf.worker.js";
 
 export class TemplateEditor extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
-        this.imgRef = useRef("img");
+        this.canvasRef = useRef("canvas");
         this.docId = this.props.action.params.document_id;
         this.state = useState({
-            png: null,
             fields: [],
             zones: [],
             partnerName: "",
             currentField: null,
             drawing: null,
+            loading: true,
         });
         onWillStart(async () => {
-            const data = await this.orm.call(
+            this.data = await this.orm.call(
                 "invoice.ocr.document", "get_template_editor_data", [this.docId]
             );
-            this.state.png = data.page_png;
-            this.state.fields = data.fields;
-            this.state.zones = data.zones || [];
-            this.state.partnerName = data.partner_name;
-            this.state.currentField = data.fields.length ? data.fields[0][0] : null;
+            this.state.fields = this.data.fields;
+            this.state.zones = this.data.zones || [];
+            this.state.partnerName = this.data.partner_name;
+            this.state.currentField = this.data.fields.length ? this.data.fields[0][0] : null;
+            await loadJS(PDFJS_LIB);
         });
+        onMounted(() => this._renderPdf());
+    }
+
+    async _renderPdf() {
+        const pdfjsLib = globalThis.pdfjsLib;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        const raw = atob(this.data.pdf_b64 || "");
+        const bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) {
+            bytes[i] = raw.charCodeAt(i);
+        }
+        const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+        const page = await pdf.getPage(1);
+        const canvas = this.canvasRef.el;
+        const containerWidth = (canvas.parentElement && canvas.parentElement.clientWidth) || 800;
+        const base = page.getViewport({ scale: 1 });
+        const viewport = page.getViewport({ scale: containerWidth / base.width });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+        this.state.loading = false;
     }
 
     _rel(ev) {
-        const rect = this.imgRef.el.getBoundingClientRect();
+        const rect = this.canvasRef.el.getBoundingClientRect();
         return {
             x: Math.min(1, Math.max(0, (ev.clientX - rect.left) / rect.width)),
             y: Math.min(1, Math.max(0, (ev.clientY - rect.top) / rect.height)),

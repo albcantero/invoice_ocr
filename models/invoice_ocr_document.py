@@ -318,23 +318,18 @@ class InvoiceOcrDocument(models.Model):
         }
 
     def get_template_editor_data(self):
-        """Datos para el editor: PNG de la página, campos y zonas actuales."""
+        """Datos para el editor: bytes del PDF (los renderiza pdf.js en el
+        cliente), campos y zonas actuales."""
         self.ensure_one()
         import base64
 
-        import fitz
-
         from .invoice_ocr_template import FIELD_KEYS
 
-        document = fitz.open(stream=self.attachment_id.raw or b"", filetype="pdf")
-        pixmap = document[0].get_pixmap(dpi=110)
-        png_b64 = base64.b64encode(pixmap.tobytes("png")).decode()
-        document.close()
         template = self.env["invoice.ocr.template"].search(
             [("partner_id", "=", self.partner_id.id), ("active", "=", True)], limit=1
         )
         return {
-            "page_png": png_b64,
+            "pdf_b64": base64.b64encode(self.attachment_id.raw or b"").decode(),
             "partner_name": self.partner_id.display_name or "",
             "fields": FIELD_KEYS,
             "zones": [

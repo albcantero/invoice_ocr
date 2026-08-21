@@ -7,7 +7,8 @@
     'license': 'LGPL-3',
     'category': 'Accounting',
     'depends': ['account'],
-    'external_dependencies': {'python': ['rapidocr_onnxruntime', 'fitz']},
+    # Sin dependencias externas: lectura de PDF con pypdf/PyPDF2 (ya en Odoo)
+    # y render del editor con pdf.js (ya en Odoo). Plug-and-play.
     'data': [
         'security/ir.model.access.csv',
         # Capa LLM (fase beta) PARKEADA — reponer estas 2 lineas para reactivar:
