@@ -13,6 +13,7 @@
         # Capa LLM (fase beta) PARKEADA — reponer estas 2 lineas para reactivar:
         # 'data/ir_cron.xml',
         'views/invoice_ocr_document_views.xml',
+        'views/invoice_ocr_template_views.xml',
         'wizards/invoice_ocr_upload_views.xml',
         'views/invoice_ocr_menus.xml',
         # 'views/res_config_settings_views.xml',

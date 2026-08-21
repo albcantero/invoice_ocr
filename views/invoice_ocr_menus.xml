@@ -7,4 +7,7 @@
     <menuitem id="menu_invoice_ocr_documents" name="Documentos"
               parent="menu_invoice_ocr_root" action="invoice_ocr_document_action"
               sequence="20"/>
+    <menuitem id="menu_invoice_ocr_templates" name="Plantillas"
+              parent="menu_invoice_ocr_root" action="invoice_ocr_template_action"
+              sequence="30"/>
 </odoo>

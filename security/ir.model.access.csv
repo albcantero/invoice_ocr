@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_invoice_ocr_document,invoice.ocr.document,model_invoice_ocr_document,account.group_account_invoice,1,1,1,1
 access_invoice_ocr_upload,invoice.ocr.upload,model_invoice_ocr_upload,account.group_account_invoice,1,1,1,1
 access_invoice_ocr_document_line,invoice.ocr.document.line,model_invoice_ocr_document_line,account.group_account_invoice,1,1,1,1
+access_invoice_ocr_template,invoice.ocr.template,model_invoice_ocr_template,account.group_account_invoice,1,1,1,1
+access_invoice_ocr_template_zone,invoice.ocr.template.zone,model_invoice_ocr_template_zone,account.group_account_invoice,1,1,1,1

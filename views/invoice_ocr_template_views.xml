@@ -1,0 +1,44 @@
+<odoo>
+    <record id="invoice_ocr_template_view_list" model="ir.ui.view">
+        <field name="name">invoice.ocr.template.list</field>
+        <field name="model">invoice.ocr.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="invoice_ocr_template_view_form" model="ir.ui.view">
+        <field name="name">invoice.ocr.template.form</field>
+        <field name="model">invoice.ocr.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="partner_id"/>
+                        <field name="active"/>
+                    </group>
+                    <field name="zone_ids">
+                        <list editable="bottom">
+                            <field name="field_key"/>
+                            <field name="x0"/>
+                            <field name="y0"/>
+                            <field name="x1"/>
+                            <field name="y1"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="invoice_ocr_template_action" model="ir.actions.act_window">
+        <field name="name">Plantillas</field>
+        <field name="res_model">invoice.ocr.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

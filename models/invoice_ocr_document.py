@@ -111,6 +111,7 @@ class InvoiceOcrDocument(models.Model):
                 document.state = "processing"
                 text = document._ocr_text()
                 document._apply_extraction(text)
+                document._apply_template_if_any()
                 # if llm_enabled:
                 #     document.llm_state = "pending"
             except Exception as error:  # noqa: BLE001 - se refleja en el registro
@@ -151,6 +152,38 @@ class InvoiceOcrDocument(models.Model):
             if partner:
                 vals["partner_id"] = partner.id
         self.write(vals)
+
+    def _apply_template_if_any(self):
+        """Si el proveedor casado tiene una plantilla zonal activa, sus valores
+        (exactos para ese proveedor) sobrescriben los de la heuristica."""
+        self.ensure_one()
+        if not self.partner_id:
+            return
+        template = self.env["invoice.ocr.template"].search(
+            [("partner_id", "=", self.partner_id.id), ("active", "=", True)], limit=1
+        )
+        if not template or not template.zone_ids:
+            return
+        data = self.attachment_id.raw or b""
+        is_pdf = self.attachment_id.mimetype == "application/pdf" or data[:5] == b"%PDF-"
+        if not is_pdf:
+            return  # el zonal (v1) es solo para PDF digital
+        from ..lib.zonal import engine as zonal_engine
+        from ..lib.zonal import pdf as zonal_pdf
+
+        words = zonal_pdf.pdf_to_words(data)
+        zones = [
+            {"field_key": z.field_key, "x0": z.x0, "y0": z.y0, "x1": z.x1, "y1": z.y1}
+            for z in template.zone_ids
+        ]
+        extracted = zonal_engine.extract_fields(words, zones)
+        vals = {key: value for key, value in extracted.items() if value is not None}
+        if vals.get("partner_vat"):
+            partner = self._match_partner(vals["partner_vat"])
+            if partner:
+                vals["partner_id"] = partner.id
+        if vals:
+            self.write(vals)
 
     def _apply_llm_result(self, llm_invoice):
         self.ensure_one()
