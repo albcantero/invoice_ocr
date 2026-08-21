@@ -76,7 +76,8 @@ export class TemplateEditor extends Component {
         return (
             `left:${z.x0 * 100}%; top:${z.y0 * 100}%;` +
             ` width:${(z.x1 - z.x0) * 100}%; height:${(z.y1 - z.y0) * 100}%;` +
-            ` border:2px solid #3B82F6; background:rgba(59,130,246,0.15);`
+            ` border:2px solid #3B82F6; background:rgba(59,130,246,0.15);` +
+            ` pointer-events:none;`
         );
     }
     get drawStyle() {
