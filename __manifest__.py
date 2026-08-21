@@ -18,6 +18,12 @@
         'views/invoice_ocr_menus.xml',
         # 'views/res_config_settings_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'invoice_ocr/static/src/js/template_editor.js',
+            'invoice_ocr/static/src/xml/template_editor.xml',
+        ],
+    },
     'application': True,
     'installable': True,
 }

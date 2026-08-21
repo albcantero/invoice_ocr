@@ -303,3 +303,68 @@ class InvoiceOcrDocument(models.Model):
             "res_id": move.id,
             "view_mode": "form",
         }
+
+    # --- Editor visual de plantillas (client action OWL) ---
+
+    def action_open_template_editor(self):
+        self.ensure_one()
+        if not self.partner_id:
+            raise UserError(_("Casa primero un proveedor para crear su plantilla."))
+        return {
+            "type": "ir.actions.client",
+            "tag": "invoice_ocr_template_editor",
+            "name": _("Plantilla del proveedor"),
+            "params": {"document_id": self.id},
+        }
+
+    def get_template_editor_data(self):
+        """Datos para el editor: PNG de la página, campos y zonas actuales."""
+        self.ensure_one()
+        import base64
+
+        import fitz
+
+        from .invoice_ocr_template import FIELD_KEYS
+
+        document = fitz.open(stream=self.attachment_id.raw or b"", filetype="pdf")
+        pixmap = document[0].get_pixmap(dpi=110)
+        png_b64 = base64.b64encode(pixmap.tobytes("png")).decode()
+        document.close()
+        template = self.env["invoice.ocr.template"].search(
+            [("partner_id", "=", self.partner_id.id), ("active", "=", True)], limit=1
+        )
+        return {
+            "page_png": png_b64,
+            "partner_name": self.partner_id.display_name or "",
+            "fields": FIELD_KEYS,
+            "zones": [
+                {"field_key": z.field_key, "x0": z.x0, "y0": z.y0, "x1": z.x1, "y1": z.y1}
+                for z in template.zone_ids
+            ],
+        }
+
+    def save_template_zones(self, zones):
+        """Crea/actualiza la plantilla del proveedor con las zonas dibujadas."""
+        self.ensure_one()
+        if not self.partner_id:
+            raise UserError(_("El documento no tiene proveedor casado."))
+        template = self.env["invoice.ocr.template"].search(
+            [("partner_id", "=", self.partner_id.id), ("active", "=", True)], limit=1
+        )
+        if not template:
+            template = self.env["invoice.ocr.template"].create({
+                "name": self.partner_id.display_name,
+                "partner_id": self.partner_id.id,
+            })
+        template.zone_ids.unlink()
+        template.write({
+            "zone_ids": [
+                (0, 0, {
+                    "field_key": zone["field_key"],
+                    "x0": zone["x0"], "y0": zone["y0"],
+                    "x1": zone["x1"], "y1": zone["y1"],
+                })
+                for zone in zones
+            ]
+        })
+        return template.id

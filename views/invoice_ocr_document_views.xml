@@ -28,6 +28,9 @@
                             invisible="state not in ('new', 'processing', 'to_review', 'error')"/>
                     <button name="action_create_bill" type="object" string="Crear factura"
                             class="btn-primary" invisible="state != 'to_review'"/>
+                    <button name="action_open_template_editor" type="object"
+                            string="Plantilla del proveedor" class="btn-secondary"
+                            invisible="not partner_id"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="new,processing,to_review,done"/>
                 </header>

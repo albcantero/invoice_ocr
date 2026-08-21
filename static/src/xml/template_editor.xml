@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="invoice_ocr.TemplateEditor">
+        <div class="o_invoice_ocr_editor p-3">
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <h4 class="mb-0 me-2">Plantilla: <t t-esc="state.partnerName"/></h4>
+                <select class="form-select w-auto" t-model="state.currentField">
+                    <t t-foreach="state.fields" t-as="f" t-key="f[0]">
+                        <option t-att-value="f[0]"><t t-esc="f[1]"/></option>
+                    </t>
+                </select>
+                <button class="btn btn-primary" t-on-click="() => this.save()">Guardar</button>
+                <span class="text-muted">Elige el campo y arrastra un rectángulo sobre su valor.</span>
+            </div>
+            <div class="position-relative d-inline-block"
+                 style="user-select:none; cursor:crosshair;"
+                 t-on-mousedown="onMouseDown" t-on-mousemove="onMouseMove" t-on-mouseup="onMouseUp">
+                <img t-ref="img" t-att-src="'data:image/png;base64,' + state.png"
+                     style="max-width:100%; display:block; border:1px solid #ccc;"
+                     draggable="false"/>
+                <t t-foreach="state.zones" t-as="z" t-key="z_index">
+                    <div class="position-absolute" t-att-style="zoneStyle(z)">
+                        <span class="badge text-bg-primary"
+                              style="position:absolute; top:-1.3em; left:0; font-size:.7em; white-space:nowrap;">
+                            <t t-esc="fieldLabel(z.field_key)"/>
+                        </span>
+                    </div>
+                </t>
+                <div t-if="state.drawing" class="position-absolute" t-att-style="drawStyle"/>
+            </div>
+            <div class="mt-2 d-flex flex-wrap gap-1">
+                <t t-foreach="state.zones" t-as="z" t-key="z_index + '_l'">
+                    <span class="badge text-bg-secondary">
+                        <t t-esc="fieldLabel(z.field_key)"/>
+                        <a href="#" class="text-white ms-1"
+                           t-on-click.prevent="() => this.removeZone(z_index)">×</a>
+                    </span>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>
